@@ -3,12 +3,97 @@
 <head>
   <meta charset="utf-8">
   <style>
-    body { width: 350px; padding: 15px; font-family: Arial, sans-serif; }
-    .safe { color: #2ecc71; font-size: 18px; font-weight: bold; }
-    .danger { color: #e74c3c; font-size: 18px; font-weight: bold; }
-    .url-text { font-size: 12px; color: #555; word-break: break-all; margin-bottom: 10px; }
-    .loading { color: #888; }
-    p { margin: 0 0 10px; }
+    body {
+      width: 360px;
+      margin: 0;
+      padding: 16px;
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at top, #0c2a52 0%, #07162d 55%, #05101f 100%);
+      color: #e5eefc;
+    }
+    h3 {
+      margin: 0 0 10px;
+      color: #f4f8ff;
+      font-size: 18px;
+      letter-spacing: 0.02em;
+    }
+    #result {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .url-text {
+      font-size: 12px;
+      color: #b8c7e0;
+      word-break: break-all;
+      line-height: 1.4;
+    }
+    .loading {
+      color: #92a5c4;
+      font-size: 13px;
+    }
+    .status-line {
+      font-size: 13px;
+      color: #e5eefc;
+    }
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 2px;
+    }
+    .metric {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .metric-circle {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 700;
+      color: #f8fbff;
+      box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.03) inset;
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .metric-label {
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #b8c7e0;
+    }
+    .metric--malicious .metric-circle {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.16);
+    }
+    .metric--suspicious .metric-circle {
+      border-color: #f59e0b;
+      background: rgba(245, 158, 11, 0.16);
+    }
+    .metric--harmless .metric-circle {
+      border-color: #22c55e;
+      background: rgba(34, 197, 94, 0.16);
+    }
+    .metric--undetected .metric-circle {
+      border-color: #38bdf8;
+      background: rgba(56, 189, 248, 0.16);
+    }
+    .loading-circle {
+      border-color: #7c8ca8;
+      color: #d4ddee;
+    }
+    .message-card {
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
   </style>
 </head>
 <body>
