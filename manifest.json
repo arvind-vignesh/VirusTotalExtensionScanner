@@ -9,8 +9,9 @@
     "storage"
   ],
   "icons": {
-    "48": "icon.svg",
-    "96": "icon.svg"
+    "48": "icon-128X128.png",
+    "96": "icon-128X128.png",
+    "128": "icon-128X128.png"
   },
   "action": {
     "default_popup": "popup.html",
