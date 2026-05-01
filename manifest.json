@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json.schemastore.org/firefox-manifest.json",
+  "manifest_version": 3,
+  "name": "VT Context Scanner",
+  "version": "1.0",
+  "description": "Right-click to scan links with VirusTotal.",
+  "permissions": [
+    "contextMenus",
+    "storage"
+  ],
+  "icons": {
+    "48": "icon.svg",
+    "96": "icon.svg"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "32": "icon.svg"
+    }
+  },
+  "host_permissions": [
+    "https://www.virustotal.com/api/v3/*"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "vt-context-scanner@arvindvignesh",
+      "strict_min_version": "142.0",
+      "data_collection_permissions": {
+        "required": ["websiteActivity"]
+      }
+    }
+  }
+}

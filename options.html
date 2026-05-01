@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .warning { color: #555; font-size: 12px; font-style: italic; margin-bottom: 15px; }
+    input { width: 300px; padding: 5px; margin-right: 10px; }
+    button { padding: 5px 15px; cursor: pointer; }
+    #status { color: green; margin-left: 10px; display: none; }
+  </style>
+</head>
+<body>
+  <h3>Virus Total API Settings</h3>
+  <p class="warning">Your API key is stored locally in Firefox extension storage and is only sent to VirusTotal when you run a scan.</p>
+  
+  <label for="apiKey">Enter your API Key:</label><br><br>
+  <input type="text" id="apiKey" placeholder="Paste your key here...">
+  <button id="save">Save</button>
+  <span id="status">Saved!</span>
+
+  <script src="options.js"></script>
+</body>
+</html>
