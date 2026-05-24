@@ -155,13 +155,15 @@ function mapStatsToResult(url, stats) {
   };
 }
 
-async function scanUrl(apiKey, url) {
-  try {
-    const report = await getUrlReport(apiKey, url);
-    return mapStatsToResult(url, report?.data?.attributes?.last_analysis_stats);
-  } catch (error) {
-    if (error.status !== 404) {
-      throw error;
+async function scanUrl(apiKey, url, force = false) {
+  if (!force) {
+    try {
+      const report = await getUrlReport(apiKey, url);
+      return mapStatsToResult(url, report?.data?.attributes?.last_analysis_stats);
+    } catch (error) {
+      if (error.status !== 404) {
+        throw error;
+      }
     }
   }
 
@@ -171,18 +173,15 @@ async function scanUrl(apiKey, url) {
   return mapStatsToResult(url, freshReport?.data?.attributes?.last_analysis_stats);
 }
 
-browser.contextMenus.onClicked.addListener(async (info) => {
-  if (info.menuItemId !== MENU_ID || !info.linkUrl) {
-    return;
-  }
-
-  const url = info.linkUrl;
-
+async function handleScanRequest(url, shouldOpenPopup = false, force = false) {
   await publishResult({
     status: "loading",
     url
   });
-  await browser.action.openPopup().catch(() => {});
+  
+  if (shouldOpenPopup) {
+    await browser.action.openPopup().catch(() => {});
+  }
 
   const storageResult = await browser.storage.local.get("vtApiKey");
   const apiKey = storageResult.vtApiKey?.trim();
@@ -197,7 +196,7 @@ browser.contextMenus.onClicked.addListener(async (info) => {
   }
 
   try {
-    const result = await scanUrl(apiKey, url);
+    const result = await scanUrl(apiKey, url, force);
     await publishResult(result);
   } catch (error) {
     await publishResult({
@@ -206,4 +205,18 @@ browser.contextMenus.onClicked.addListener(async (info) => {
       error: error.message || "The scan failed. Please try again."
     });
   }
+}
+
+browser.contextMenus.onClicked.addListener(async (info) => {
+  if (info.menuItemId !== MENU_ID || !info.linkUrl) {
+    return;
+  }
+  await handleScanRequest(info.linkUrl, true, false);
 });
+
+browser.runtime.onMessage.addListener((message) => {
+  if (message.action === "startScan" && message.url) {
+    handleScanRequest(message.url, false, message.force || false);
+  }
+});
+
