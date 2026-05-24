@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/firefox-manifest.json",
   "manifest_version": 3,
   "name": "VT Context Scanner",
-  "version": "2.1",
+  "version": "2.2",
   "description": "Right-click to scan links with VirusTotal.",
   "permissions": [
     "contextMenus",
