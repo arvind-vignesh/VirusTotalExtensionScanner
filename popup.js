@@ -234,14 +234,46 @@ function renderResult(result) {
   appendReanalyzeButton(result.url);
 }
 
+function showUpdateBanner(version) {
+  const banner = document.getElementById("update-banner");
+  if (!banner) return;
+
+  while (banner.firstChild) {
+    banner.removeChild(banner.firstChild);
+  }
+
+  const textSpan = document.createElement("span");
+  textSpan.className = "update-banner-text";
+  textSpan.textContent = `Update v${version} is ready`;
+
+  const btn = document.createElement("button");
+  btn.className = "update-button";
+  btn.id = "update-btn";
+  btn.textContent = "Restart";
+  btn.addEventListener("click", () => {
+    browser.storage.local.remove(["updateAvailable", "updateVersion"]).then(() => {
+      browser.runtime.sendMessage({ action: "applyUpdate" });
+    });
+  });
+
+  banner.appendChild(textSpan);
+  banner.appendChild(btn);
+  banner.style.display = "flex";
+}
+
 browser.runtime.onMessage.addListener((message) => {
   if (message.action === "scanResultUpdated") {
     renderResult(message.result);
+  } else if (message.action === "updateAvailable") {
+    showUpdateBanner(message.version);
   }
 });
 
-browser.storage.local.get(RESULT_KEY).then((result) => {
+browser.storage.local.get([RESULT_KEY, "updateAvailable", "updateVersion"]).then((result) => {
   renderResult(result[RESULT_KEY]);
+  if (result.updateAvailable) {
+    showUpdateBanner(result.updateVersion);
+  }
 });
 
 // Form submission handler for manual URL scanning

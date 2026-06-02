@@ -239,6 +239,20 @@ browser.contextMenus.onClicked.addListener(async (info) => {
 browser.runtime.onMessage.addListener((message) => {
   if (message.action === "startScan" && message.url) {
     handleScanRequest(message.url, false, message.force || false);
+  } else if (message.action === "applyUpdate") {
+    browser.runtime.reload();
   }
+});
+
+browser.runtime.onUpdateAvailable.addListener((details) => {
+  browser.storage.local.set({
+    updateAvailable: true,
+    updateVersion: details.version
+  }).then(() => {
+    browser.runtime.sendMessage({
+      action: "updateAvailable",
+      version: details.version
+    }).catch(() => {});
+  });
 });
 
