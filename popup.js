@@ -25,7 +25,7 @@ function appendMessage(text, className = "") {
   resultDiv.appendChild(message);
 }
 
-function createMetric(label, value, variant) {
+function createMetric(label, value, variant, onHover) {
   const metric = document.createElement("div");
   metric.className = `metric metric--${variant}`;
 
@@ -39,17 +39,137 @@ function createMetric(label, value, variant) {
 
   metric.appendChild(circle);
   metric.appendChild(metricLabel);
+
+  if (onHover) {
+    metric.addEventListener("mouseenter", () => onHover(variant));
+  }
+
   return metric;
+}
+
+function renderDetails(result, category, container) {
+  while (container.firstChild) {
+    container.removeChild(container.firstChild);
+  }
+
+  container.className = `details-card details-card--${category}`;
+
+  const title = document.createElement("div");
+  title.className = "details-title";
+  
+  const titleText = document.createElement("span");
+  title.appendChild(titleText);
+  container.appendChild(title);
+
+  const vendors = result.dangerousVendors || [];
+  const filtered = vendors.filter(v => v.category === category);
+
+  if (category === "malicious" || category === "suspicious") {
+    const count = category === "malicious" ? (result.malicious ?? 0) : (result.suspicious ?? 0);
+    titleText.textContent = `${category} detections (${count})`;
+
+    if (filtered.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      empty.textContent = `No vendors flagged this URL as ${category}.`;
+      container.appendChild(empty);
+    } else {
+      const table = document.createElement("table");
+      table.className = "details-table";
+      
+      const thead = document.createElement("thead");
+      thead.innerHTML = `
+        <tr>
+          <th>Security Vendor</th>
+          <th style="text-align: right;">Result</th>
+        </tr>
+      `;
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+      filtered.forEach(v => {
+        const tr = document.createElement("tr");
+        
+        const tdEngine = document.createElement("td");
+        tdEngine.textContent = v.engine;
+        tdEngine.style.fontWeight = "600";
+        
+        const tdResult = document.createElement("td");
+        tdResult.style.textAlign = "right";
+        
+        const badge = document.createElement("span");
+        badge.className = `vendor-badge vendor-badge--${category}`;
+        badge.textContent = v.result;
+        
+        tdResult.appendChild(badge);
+        tr.appendChild(tdEngine);
+        tr.appendChild(tdResult);
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      container.appendChild(table);
+    }
+  } else if (category === "harmless") {
+    const count = result.harmless ?? 0;
+    titleText.textContent = `harmless scans (${count})`;
+    
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = count > 0 
+      ? `${count} security vendors analyzed this URL and declared it completely harmless.`
+      : "No engines reported this URL as harmless.";
+    container.appendChild(empty);
+  } else if (category === "undetected") {
+    const count = result.undetected ?? 0;
+    titleText.textContent = `undetected scans (${count})`;
+    
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = count > 0
+      ? `${count} security vendors did not have a detection report for this URL.`
+      : "All engines has scanner records for this URL.";
+    container.appendChild(empty);
+  }
 }
 
 function renderMetrics(result) {
   const metricsGrid = document.createElement("div");
   metricsGrid.className = "metrics-grid";
-  metricsGrid.appendChild(createMetric("Malicious", result.malicious ?? 0, "malicious"));
-  metricsGrid.appendChild(createMetric("Suspicious", result.suspicious ?? 0, "suspicious"));
-  metricsGrid.appendChild(createMetric("Harmless", result.harmless ?? 0, "harmless"));
-  metricsGrid.appendChild(createMetric("Undetected", result.undetected ?? 0, "undetected"));
+
+  const detailsContainer = document.createElement("div");
+  detailsContainer.className = "details-card";
+
+  let defaultCategory = "harmless";
+  if ((result.malicious ?? 0) > 0) {
+    defaultCategory = "malicious";
+  } else if ((result.suspicious ?? 0) > 0) {
+    defaultCategory = "suspicious";
+  }
+
+  const handleHover = (category) => {
+    renderDetails(result, category, detailsContainer);
+  };
+
+  const handleLeave = () => {
+    renderDetails(result, defaultCategory, detailsContainer);
+  };
+
+  const maliciousMetric = createMetric("Malicious", result.malicious ?? 0, "malicious", handleHover);
+  const suspiciousMetric = createMetric("Suspicious", result.suspicious ?? 0, "suspicious", handleHover);
+  const harmlessMetric = createMetric("Harmless", result.harmless ?? 0, "harmless", handleHover);
+  const undetectedMetric = createMetric("Undetected", result.undetected ?? 0, "undetected", handleHover);
+
+  metricsGrid.addEventListener("mouseleave", handleLeave);
+
+  metricsGrid.appendChild(maliciousMetric);
+  metricsGrid.appendChild(suspiciousMetric);
+  metricsGrid.appendChild(harmlessMetric);
+  metricsGrid.appendChild(undetectedMetric);
+
   resultDiv.appendChild(metricsGrid);
+  resultDiv.appendChild(detailsContainer);
+
+  renderDetails(result, defaultCategory, detailsContainer);
 }
 
 function appendReanalyzeButton(url) {

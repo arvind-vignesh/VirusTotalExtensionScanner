@@ -144,14 +144,28 @@ async function waitForAnalysisCompletion(apiKey, analysisId) {
   throw new Error("VirusTotal analysis did not complete in time. Please try again.");
 }
 
-function mapStatsToResult(url, stats) {
+function mapStatsToResult(url, stats, results) {
+  const dangerousVendors = [];
+  if (results) {
+    for (const [engineName, details] of Object.entries(results)) {
+      if (details.category === "malicious" || details.category === "suspicious") {
+        dangerousVendors.push({
+          engine: engineName,
+          category: details.category,
+          result: details.result || "detected"
+        });
+      }
+    }
+  }
+
   return {
     status: "done",
     url,
     malicious: stats?.malicious ?? 0,
     suspicious: stats?.suspicious ?? 0,
     harmless: stats?.harmless ?? 0,
-    undetected: stats?.undetected ?? 0
+    undetected: stats?.undetected ?? 0,
+    dangerousVendors
   };
 }
 
@@ -159,7 +173,11 @@ async function scanUrl(apiKey, url, force = false) {
   if (!force) {
     try {
       const report = await getUrlReport(apiKey, url);
-      return mapStatsToResult(url, report?.data?.attributes?.last_analysis_stats);
+      return mapStatsToResult(
+        url,
+        report?.data?.attributes?.last_analysis_stats,
+        report?.data?.attributes?.last_analysis_results
+      );
     } catch (error) {
       if (error.status !== 404) {
         throw error;
@@ -170,7 +188,11 @@ async function scanUrl(apiKey, url, force = false) {
   const submission = await submitUrlForScan(apiKey, url);
   await waitForAnalysisCompletion(apiKey, submission?.data?.id);
   const freshReport = await getUrlReport(apiKey, url);
-  return mapStatsToResult(url, freshReport?.data?.attributes?.last_analysis_stats);
+  return mapStatsToResult(
+    url,
+    freshReport?.data?.attributes?.last_analysis_stats,
+    freshReport?.data?.attributes?.last_analysis_results
+  );
 }
 
 async function handleScanRequest(url, shouldOpenPopup = false, force = false) {
